@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <link rel="icon" type="icon" href="static/icon.ico">
+
+    <title>Play Hub</title>
+
+    <script>
+        // Tailwind CSS Configuration
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Arial', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            /* Domyślne tło jest ustawiane przez JS, to tylko fallback */
+            transition: background-color 0.5s, background-image 0.5s;
+        }
+
+        .app-item.focused {
+            transform: scale(1.15) !important;
+            box-shadow: 0 0 0 8px #BDBDBd, 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+            z-index: 10;
+        }
+
+        .app-item.focused .icon-color {
+            color: white !important;
+        }
+
+        #youtube.focused {
+            background-color: rgb(153, 27, 27) !important;
+        }
+
+        #netflix.focused {
+            background-color: rgb(127, 29, 29) !important;
+        }
+
+        #stremio.focused {
+            background-color: rgb(109, 40, 217) !important;
+        }
+
+        #steamlink.focused {
+            background-color: rgb(0, 173, 238) !important;
+        }
+
+        #desktop.focused {
+            background-color: rgb(29, 78, 216) !important;
+        }
+
+        .fa-steam {
+            color: rgb(0, 173, 238) !important;
+        }
+
+        /* --- CUSTOM STYLING FOR STAT RANGES (GAUGES) --- */
+        .stat-range {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            border-radius: 6px;
+            outline: none;
+            opacity: 1;
+            transition: all 0.5s ease-out;
+            pointer-events: none;
+
+            background: linear-gradient(to right, var(--progress-color, #3B82F6) 0%, var(--progress-color, #3B82F6) var(--progress-width, 50%), #374151 var(--progress-width, 50%), #374151 100%);
+
+
+            background-color: #374151;
+        }
+
+        .stat-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 0px;
+            width: 0px;
+            visibility: hidden;
+        }
+
+        /* Toggle Switch Styling */
+        .toggle-checkbox:checked+.toggle-label .toggle-circle {
+            transform: translateX(1.5rem);
+        }
+
+        .toggle-checkbox:checked+.toggle-label {
+            background-color: #3B82F6;
+            /* blue-500 */
+        }
+
+        /* Background Type Switch Styling */
+        input[type="radio"].hidden:checked+label {
+            background-color: #3B82F6 !important;
+            /* blue-500 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="radio"].hidden:not(:checked)+label {
+            background-color: #374151 !important;
+            /* gray-700 */
+            color: #9CA3AF;
+            /* gray-400 */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-6">
+
+    <!-- Settings Button (Top Right) -->
+    <button id="settings-button" onclick="openSettings()"
+        class="fixed top-6 right-6 p-4 bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white rounded-full shadow-lg transition-colors duration-200 z-50">
+        <i class="fa-solid fa-gear text-2xl"></i>
+    </button>
+
+    <!-- Title Section -->
+    <div class="text-center">
+        <h1 class="text-8xl font-bold mb-3 flex items-center justify-center gap-3 text-gray-400">
+            <i class="fa-regular fa-circle-play text-blue-400"></i>
+            <span>Play Hub</span>
+        </h1>
+        <p class="text-sm text-gray-500 mb-12 italic">
+            Select your application to get started. Enjoy your experience!
+        </p>
+    </div>
+
+    <!-- Container for all apps -->
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-8 w-full max-w-6xl">
+
+        <!-- App 1: YouTube -->
+        <a href="https://youtube.com/tv" id="youtube"
+            class="app-item group flex flex-col items-center justify-center gap-4 p-12 bg-gray-800 rounded-3xl shadow-2xl transition-all duration-300 hover:bg-red-800 transform">
+            <i class="icon-color fa-brands fa-youtube text-9xl text-red-500 group-hover:text-white"></i>
+            <span class="text-sm font-light text-white">YouTube</span>
+        </a>
+
+        <!-- App 2: Netflix -->
+        <a href="https://www.netflix.com/" id="netflix"
+            class="app-item group flex flex-col items-center justify-center gap-4 p-12 bg-gray-800 rounded-3xl shadow-2xl transition-all duration-300 hover:bg-red-900 transform">
+            <i class="icon-color fa-solid fa-film text-9xl text-red-600 group-hover:text-white"></i>
+            <span class="text-sm font-light text-white">Netflix</span>
+        </a>
+
+        <!-- App 3: Stremio -->
+        <a href="/app/stremio" id="stremio"
+            class="app-item group flex flex-col items-center justify-center gap-4 p-12 bg-gray-800 rounded-3xl shadow-2xl transition-all duration-300 hover:bg-purple-800 transform">
+            <i class="icon-color fa-solid fa-clapperboard text-9xl text-purple-500 group-hover:text-white"></i>
+            <span class="text-sm font-light text-white">Stremio</span>
+        </a>
+
+
+        <!-- App 4: SteamLink -->
+        <a href="/app/steamlink" id="steamlink"
+            class="app-item group flex flex-col items-center justify-center gap-4 p-12 bg-gray-800 rounded-3xl shadow-2xl transition-all duration-300 hover:bg-blue-800 transform">
+            <i class="icon-color fa-brands fa-steam text-9xl group-hover:text-white"></i>
+            <span class="text-sm font-light text-white">Steam Link</span>
+        </a>
+
+        <!-- App 5: Pulpit -->
+        <a href="/app/desktop" id="desktop"
+            class="app-item group flex flex-col items-center justify-center gap-4 p-12 bg-gray-800 rounded-3xl shadow-2xl transition-all duration-300 hover:bg-blue-800 transform">
+            <i class="icon-color fa-solid fa-desktop text-9xl text-blue-500 group-hover:text-white"></i>
+            <span class="text-sm font-light text-white">Desktop</span>
+        </a>
+
+    </div>
+
+    <div id="stats-container"
+        class="w-full max-w-4xl mt-16 p-8 bg-gray-800 rounded-2xl shadow-xl flex flex-col md:flex-row gap-8 border border-gray-700">
+
+        <!-- Stat Item: CPU -->
+        <div class="stat-item flex-1 min-w-0">
+            <div class="flex justify-between items-center mb-2">
+                <span id="cpu_stat_txt" class="text-lg font-medium text-blue-400">CPU: --%</span>
+                <i class="fa-solid fa-microchip text-blue-600"></i>
+            </div>
+            <input id="cpu_stat" type="range" min="0" max="100" value="0" step="1" disabled class="w-full stat-range">
+        </div>
+
+        <!-- Stat Item: RAM -->
+        <div class="stat-item flex-1 min-w-0">
+            <div class="flex justify-between items-center mb-2">
+                <span id="ram_stat_txt" class="text-lg font-medium text-blue-400">RAM: --%</span>
+                <i class="fa-solid fa-memory text-blue-600"></i>
+            </div>
+            <input id="ram_stat" type="range" min="0" max="100" value="0" step="1" disabled class="w-full stat-range">
+        </div>
+
+        <!-- Stat Item: Disk -->
+        <div class="stat-item flex-1 min-w-0">
+            <div class="flex justify-between items-center mb-2">
+                <span id="disk_stat_txt" class="text-lg font-medium text-blue-400">Disk: --%</span>
+                <i class="fa-solid fa-hard-drive text-blue-600"></i>
+            </div>
+            <input id="disk_stat" type="range" min="0" max="100" value="0" step="1" disabled class="w-full stat-range">
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal"
+        class="hidden fixed inset-0 z-[9999] bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-lg border border-gray-700 transform transition-all duration-300 scale-95 opacity-0"
+            id="settings-content">
+            <div class="flex justify-between items-start mb-6">
+                <h2 class="text-3xl font-bold text-blue-400">SmartHub Settings</h2>
+                <button onclick="closeSettings()"
+                    class="text-gray-400 hover:text-white transition-colors duration-200 p-2 -mt-2 -mr-2">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- Settings Options Content -->
+            <div class="space-y-6">
+
+                <!-- Option 1: Show stats -->
+                <div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                    <span class="text-gray-200 text-lg">Show PC stats</span>
+
+                    <!-- Toggle Switch -->
+                    <label class="flex items-center cursor-pointer">
+                        <!-- Hidden input checkbox for state management -->
+                        <input id="toggle-stats" type="checkbox" class="hidden toggle-checkbox" checked
+                            onchange="toggleStats()">
+
+                        <!-- Toggle Label/Track -->
+                        <div
+                            class="toggle-label bg-gray-600 w-14 h-8 rounded-full shadow-inner p-1 transition-colors duration-300">
+                            <!-- Toggle Circle/Thumb -->
+                            <div
+                                class="toggle-circle w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300">
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Option 2: Background type -->
+                <div class="p-4 bg-gray-700 rounded-lg shadow-inner border border-gray-600">
+                    <label class="block text-gray-200 text-xl font-semibold mb-3">App background</label>
+
+                    <!-- Color/Image switch -->
+                    <div class="flex space-x-2 bg-gray-800 p-1 rounded-xl mb-4">
+
+                        <input type="radio" id="bg-color" name="bg-type" value="color" class="hidden" checked
+                            onchange="changeBackgroundType(this.value)">
+                        <label for="bg-color"
+                            class="flex-1 text-center py-2 rounded-lg transition-all duration-200 cursor-pointer select-none text-sm font-medium">Color/Gradient</label>
+
+                        <input type="radio" id="bg-image" name="bg-type" value="image" class="hidden"
+                            onchange="changeBackgroundType(this.value)">
+                        <label for="bg-image"
+                            class="flex-1 text-center py-2 rounded-lg transition-all duration-200 cursor-pointer select-none text-sm font-medium">Image
+                            (URL)</label>
+                    </div>
+
+                    <!-- Color selection section-->
+                    <div id="bg-color-settings" class="space-y-3 transition-opacity duration-300">
+                        <label for="bg-color-input" class="text-gray-400 block text-sm">Select color or gradient (CSS
+                            value):</label>
+                        <input type="text" id="bg-color-input" value="#111827"
+                            placeholder="np. #4F46E5 lub linear-gradient(...)"
+                            onchange="changeBackground(this.value, 'color')"
+                            class="w-full p-3 rounded-xl bg-gray-900 text-white border border-gray-600 focus:ring-blue-500 focus:border-blue-500 shadow-md">
+                        <p class="text-xs text-gray-500 pt-1">Try for ex.: `linear-gradient(to bottom right, #4F46E5,
+                            #000000)`</p>
+                    </div>
+
+                    <!-- Image selection section -->
+                    <div id="bg-image-settings" class="space-y-3 hidden transition-opacity duration-300">
+                        <label for="bg-image-input" class="text-gray-400 block text-sm">Image URL:</label>
+                        <input type="text" id="bg-image-input"
+                            placeholder="np. https://placehold.co/1920x1080/000000/FFFFFF?text=TLO"
+                            onchange="changeBackground(this.value, 'image')"
+                            class="w-full p-3 rounded-xl bg-gray-900 text-white border border-gray-600 focus:ring-blue-500 focus:border-blue-500 shadow-md">
+                        <p class="text-xs text-gray-500 pt-1">Remember to use full image URLs starting with
+                            <code>http://</code> or
+                            <code>https://</code>.
+                        </p>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <p class="text-sm text-gray-500 mt-6 text-center">
+                Settings are saved automatically as you make changes.
+            </p>
+            <div class="mt-6 text-right">
+                <button onclick="closeSettings()"
+                    class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+
+        // --- MODULE: GLOBAL STATE ---
+        let showStats = true;
+        let backgroundType = 'color';
+        let backgroundColorValue = '#111827';
+        let backgroundImageValue = '';
+
+
+        // --- MODULE: SETTINGS ---
+
+        // Global functions for opening/closing the settings modal
+        function openSettings() {
+            const modal = document.getElementById('settings-modal');
+            const content = document.getElementById('settings-content');
+            if (modal) {
+                modal.classList.remove('hidden');
+                // Trigger animation
+                setTimeout(() => {
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+        }
+
+        function closeSettings() {
+            const modal = document.getElementById('settings-modal');
+            const content = document.getElementById('settings-content');
+            if (modal && !modal.classList.contains('hidden')) {
+                // Trigger reverse animation
+                content.classList.remove('scale-100', 'opacity-100');
+                content.classList.add('scale-95', 'opacity-0');
+                // Hide after animation finishes
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300); // Match Tailwind transition duration (300ms)
+            }
+        }
+
+        // 1. Function to toggle stats visibility
+        function toggleStats() {
+            const statsContainer = document.getElementById('stats-container');
+            const checkbox = document.getElementById('toggle-stats');
+
+            showStats = checkbox.checked;
+
+            if (statsContainer) {
+                statsContainer.style.display = showStats ? 'flex' : 'none';
+            }
+            saveSettings();
+        }
+
+        // 2. Function to change background type (color/image)
+        function changeBackgroundType(type) {
+            backgroundType = type;
+            const colorSettings = document.getElementById('bg-color-settings');
+            const imageSettings = document.getElementById('bg-image-settings');
+
+            if (type === 'color') {
+                colorSettings.classList.remove('hidden');
+                imageSettings.classList.add('hidden');
+                changeBackground(backgroundColorValue, 'color', false);
+            } else {
+                colorSettings.classList.add('hidden');
+                imageSettings.classList.remove('hidden');
+                changeBackground(backgroundImageValue, 'image', false);
+            }
+            saveSettings();
+        }
+
+        // 3. Function to change background value
+        function changeBackground(value, type, updateInput = true) {
+            const body = document.body;
+
+            if (type === 'color') {
+                backgroundColorValue = value;
+                body.style.backgroundImage = 'none';
+                body.style.background = value;
+
+                if (updateInput) {
+                    document.getElementById('bg-color-input').value = value;
+                }
+
+                console.log(`[SETTINGS] Changed background to color/gradient: ${value}`);
+
+            } else if (type === 'image') {
+                backgroundImageValue = value;
+                if (value.startsWith('http')) {
+                    body.style.background = `url('${value}') center center/cover no-repeat fixed`;
+                } else {
+                    body.style.background = backgroundColorValue;
+                }
+
+                if (updateInput) {
+                    document.getElementById('bg-image-input').value = value;
+                }
+
+                console.log(`[SETTINGS] Background image changed: ${value}`);
+            }
+            saveSettings();
+        }
+
+        // 4. Function to initialize settings from backend
+        async function initializeSettings() {
+            try {
+                const res = await fetch('/get_settings');
+                const settings = await res.json();
+
+                showStats = settings.showStats;
+                backgroundType = settings.backgroundType;
+                backgroundColorValue = settings.backgroundColorValue;
+                backgroundImageValue = settings.backgroundImageValue;
+
+                document.getElementById('toggle-stats').checked = showStats;
+                toggleStats();
+
+                document.getElementById(`bg-${backgroundType}`).checked = true;
+                changeBackgroundType(backgroundType);
+
+                if (backgroundType === "color") {
+                    changeBackground(backgroundColorValue, "color", false);
+                } else {
+                    changeBackground(backgroundImageValue, "image", false);
+                }
+
+                console.log("[INIT] Settings loaded from backend!");
+            } catch (err) {
+                console.error("[INIT] Error while loading settings:", err);
+            }
+        }
+        // 5. Function to save settings to backend
+        function saveSettings() {
+            const data = {
+                showStats,
+                backgroundType,
+                backgroundColorValue,
+                backgroundImageValue
+            };
+            fetch('/save_settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(res => res.json())
+                .then(r => console.log('[SETTINGS] Settings saved', r))
+                .catch(e => console.error('[SETTINGS] Error while saving:', e));
+        }
+
+
+        // --- MODULE: STATS (PC Statistics) ---
+        function updateStatGauge(id, label, value) {
+            const textElement = document.getElementById(`${id}_stat_txt`);
+            const rangeElement = document.getElementById(`${id}_stat`);
+
+            if (textElement) {
+                textElement.innerText = `${label}: ${value}%`;
+            }
+            if (rangeElement) {
+                rangeElement.value = value;
+
+                rangeElement.style.setProperty('--progress-width', `${value}%`);
+
+                // Set color based on value
+                let color;
+                if (value >= 80) {
+                    color = '#EF4444'; // Red
+                } else if (value >= 50) {
+                    color = '#F59E0B'; // Amber
+                } else {
+                    color = '#3B82F6'; // Blue
+                }
+                rangeElement.style.setProperty('--progress-color', color);
+            }
+        }
+
+        // Initial fetch and update every second
+        setInterval(async () => {
+            let data = { cpu: 0, ram: 0, disk: 0 };
+
+            try {
+                const res = await fetch('/stats');
+                data = await res.json();
+            } catch (error) {
+                console.error("Błąd pobierania statystyk PC:", error);
+                // In case of error, keep data as zeros
+            }
+
+            // Update each gauge
+            updateStatGauge('cpu', 'CPU', data.cpu);
+            updateStatGauge('ram', 'RAM', data.ram);
+            updateStatGauge('disk', 'Disk', data.disk);
+
+        }, 1000)
+
+
+        // --- MODULE: IDLE SCREEN ---
+        let idleTime = 0;
+        const idleLimit = 60; // seconds before showing idle screen
+        let overlayVisible = false;
+        let idleOverlayElement = null;
+        let clockIntervalId = null;
+
+        // Function to hide the idle screen
+        function hideIdleScreen() {
+            if (idleOverlayElement) {
+                idleOverlayElement.remove();
+                idleOverlayElement = null;
+            }
+            if (clockIntervalId) {
+                clearInterval(clockIntervalId);
+                clockIntervalId = null;
+            }
+            overlayVisible = false;
+        }
+
+        // Function to reset idle timer and hide overlay if visible
+        const resetIdle = () => {
+            // Tylko resetuj timer, jeśli ustawienia nie są otwarte
+            const settingsModal = document.getElementById('settings-modal');
+            const isSettingsOpen = settingsModal && !settingsModal.classList.contains('hidden');
+
+            if (!isSettingsOpen) {
+                idleTime = 0;
+            }
+
+            if (overlayVisible) {
+                hideIdleScreen();
+            }
+        };
+
+        // Function to update the clock every second
+        const updateClock = () => {
+            const now = new Date();
+            const clockElement = document.getElementById('clock');
+            if (clockElement) {
+                clockElement.innerText =
+                    now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+        };
+
+        // Function to show the idle screen with clock
+        function showIdleScreen() {
+
+            if (overlayVisible) return; // If already visible, do nothing
+
+            // Create the overlay element
+            idleOverlayElement = document.createElement('div');
+            idleOverlayElement.id = 'idle-overlay';
+            idleOverlayElement.className = 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-95 text-white text-9xl cursor-pointer z-[9999]';
+            idleOverlayElement.innerHTML = `<div id="clock">--:--:--</div>`;
+            document.body.appendChild(idleOverlayElement);
+
+            overlayVisible = true;
+
+            // Start updating the clock every second
+            updateClock();
+            clockIntervalId = setInterval(updateClock, 1000);
+
+            // Add event listeners to hide the overlay on interaction
+            idleOverlayElement.addEventListener('click', hideIdleScreen);
+            idleOverlayElement.addEventListener('touchstart', hideIdleScreen);
+        }
+
+
+        // Increment idle time every second
+        setInterval(() => {
+            idleTime++;
+            if (idleTime >= idleLimit) {
+                showIdleScreen();
+            }
+        }, 1000);
+
+        // Reset idle timer on user interactions
+        ['mousemove', 'keydown', 'click', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetIdle);
+        });
+
+
+        // --- MODULE: APP NAVIGATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const appItems = document.querySelectorAll('.app-item');
+            let currentFocusIndex = 0;
+
+            initializeSettings();
+
+            if (appItems.length === 0) return;
+
+            const updateFocus = (newIndex) => {
+                if (appItems[currentFocusIndex]) {
+                    appItems[currentFocusIndex].classList.remove('focused');
+                }
+                currentFocusIndex = newIndex;
+                appItems[currentFocusIndex].classList.add('focused');
+            };
+            updateFocus(0); // Initial focus on the first item
+
+
+            // Handle keyboard navigation 
+            document.addEventListener('keydown', (event) => {
+
+                // Check if settings modal is open
+                const settingsModal = document.getElementById('settings-modal');
+                const isSettingsOpen = settingsModal && !settingsModal.classList.contains('hidden');
+
+                // Zablokuj domyślne przewijanie i inne akcje dla strzałek/Enter/Escape
+                if (['ArrowLeft', 'ArrowRight', 'Enter', 'Escape'].includes(event.key)) {
+                    event.preventDefault();
+                }
+
+                if (document.getElementById('idle-overlay') || isSettingsOpen) {
+
+                    // Disable navigation when idle overlay or settings modal is open
+
+                    if (event.key === 'Enter' && isSettingsOpen) {
+                        closeSettings();
+                    } else if (event.key === 'Escape' && isSettingsOpen) {
+                        closeSettings();
+                    }
+                    return;
+                }
+
+                // -- Navigation Logic --
+                if (event.key === 'ArrowRight') {
+                    const newIndex = (currentFocusIndex + 1) % appItems.length;
+                    updateFocus(newIndex);
+                } else if (event.key === 'ArrowLeft') {
+                    const newIndex = (currentFocusIndex - 1 + appItems.length) % appItems.length;
+                    updateFocus(newIndex);
+                } else if (event.key === 'Enter') {
+                    const focusedElement = appItems[currentFocusIndex];
+                    window.location.href = focusedElement.href;
+                }
+            });
+        });
+
+    </script>
+</body>
+
+</html>
