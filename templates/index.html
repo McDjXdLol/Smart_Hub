@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
@@ -114,6 +114,43 @@
             color: #9CA3AF;
             /* gray-400 */
         }
+
+
+        * {
+            /* Domyślnie blokuje interakcje w tle */
+            pointer-events: none !important;
+        }
+
+        #settings-modal *,
+        #settings-content *,
+        #settings-button {
+            /* Włącza interakcje dla ustawień */
+            pointer-events: auto !important;
+        }
+
+        /* Dodatkowy styl dla aktywnego elementu w ustawieniach */
+        .settings-option.active-focus {
+            outline: 2px solid #3B82F6;
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+            transform: scale(1.02);
+        }
+
+        /* Klasa focus dla przełącznika Color/Image */
+        .bg-type-selector-focus {
+            outline: 2px solid #3B82F6;
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+            /* Nie skalujemy, bo to kontener */
+        }
+
+        /* Nowa klasa focus dla przycisku Close */
+        #close-settings-button.active-focus {
+            outline: 3px solid #60A5FA;
+            /* Blue-400 */
+            box-shadow: 0 0 0 5px rgba(96, 165, 250, 0.5);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 
@@ -177,6 +214,7 @@
 
     </div>
 
+    <!-- Stats Container -->
     <div id="stats-container"
         class="w-full max-w-4xl mt-16 p-8 bg-gray-800 rounded-2xl shadow-xl flex flex-col md:flex-row gap-8 border border-gray-700">
 
@@ -212,7 +250,7 @@
     <div id="settings-modal"
         class="hidden fixed inset-0 z-[9999] bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center">
         <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-lg border border-gray-700 transform transition-all duration-300 scale-95 opacity-0"
-            id="settings-content">
+            id="settings-content" tabindex="-1">
             <div class="flex justify-between items-start mb-6">
                 <h2 class="text-3xl font-bold text-blue-400">SmartHub Settings</h2>
                 <button onclick="closeSettings()"
@@ -225,7 +263,8 @@
             <div class="space-y-6">
 
                 <!-- Option 1: Show stats -->
-                <div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                <div
+                    class="settings-option flex items-center justify-between p-3 bg-gray-700 rounded-lg transition-all duration-200">
                     <span class="text-gray-200 text-lg">Show PC stats</span>
 
                     <!-- Toggle Switch -->
@@ -245,21 +284,23 @@
                     </label>
                 </div>
 
-                <!-- Option 2: Background type -->
-                <div class="p-4 bg-gray-700 rounded-lg shadow-inner border border-gray-600">
+                <!-- Option 2: Background type - Główny element focusu dla strzałek GÓRA/DÓŁ -->
+                <div id="bg-type-setting"
+                    class="settings-option p-4 bg-gray-700 rounded-lg shadow-inner border border-gray-600 transition-all duration-200">
                     <label class="block text-gray-200 text-xl font-semibold mb-3">App background</label>
 
-                    <!-- Color/Image switch -->
-                    <div class="flex space-x-2 bg-gray-800 p-1 rounded-xl mb-4">
+                    <!-- Kontener dla wyboru Color/Image - To jest cel focusu dla L/R -->
+                    <div id="bg-type-selector"
+                        class="flex space-x-2 bg-gray-800 p-1 rounded-xl mb-4 transition-all duration-200">
 
                         <input type="radio" id="bg-color" name="bg-type" value="color" class="hidden" checked
                             onchange="changeBackgroundType(this.value)">
-                        <label for="bg-color"
+                        <label for="bg-color" id="label-bg-color"
                             class="flex-1 text-center py-2 rounded-lg transition-all duration-200 cursor-pointer select-none text-sm font-medium">Color/Gradient</label>
 
                         <input type="radio" id="bg-image" name="bg-type" value="image" class="hidden"
                             onchange="changeBackgroundType(this.value)">
-                        <label for="bg-image"
+                        <label for="bg-image" id="label-bg-image"
                             class="flex-1 text-center py-2 rounded-lg transition-all duration-200 cursor-pointer select-none text-sm font-medium">Image
                             (URL)</label>
                     </div>
@@ -296,351 +337,18 @@
             <p class="text-sm text-gray-500 mt-6 text-center">
                 Settings are saved automatically as you make changes.
             </p>
+            <!-- Zmiana: div nadrzędny już nie ma klasy settings-option,
+                 przycisk dostaje ID, które wchodzi do listy options. -->
             <div class="mt-6 text-right">
-                <button onclick="closeSettings()"
-                    class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md">
-                    Close
-                </button>
+                <button id="close-settings-button" onclick="closeSettings()"
+                    class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md">Close</button>
+
             </div>
         </div>
     </div>
 
 
-    <script>
-
-        // --- MODULE: GLOBAL STATE ---
-        let showStats = true;
-        let backgroundType = 'color';
-        let backgroundColorValue = '#111827';
-        let backgroundImageValue = '';
-
-
-        // --- MODULE: SETTINGS ---
-
-        // Global functions for opening/closing the settings modal
-        function openSettings() {
-            const modal = document.getElementById('settings-modal');
-            const content = document.getElementById('settings-content');
-            if (modal) {
-                modal.classList.remove('hidden');
-                // Trigger animation
-                setTimeout(() => {
-                    content.classList.remove('scale-95', 'opacity-0');
-                    content.classList.add('scale-100', 'opacity-100');
-                }, 10);
-            }
-        }
-
-        function closeSettings() {
-            const modal = document.getElementById('settings-modal');
-            const content = document.getElementById('settings-content');
-            if (modal && !modal.classList.contains('hidden')) {
-                // Trigger reverse animation
-                content.classList.remove('scale-100', 'opacity-100');
-                content.classList.add('scale-95', 'opacity-0');
-                // Hide after animation finishes
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                }, 300); // Match Tailwind transition duration (300ms)
-            }
-        }
-
-        // 1. Function to toggle stats visibility
-        function toggleStats() {
-            const statsContainer = document.getElementById('stats-container');
-            const checkbox = document.getElementById('toggle-stats');
-
-            showStats = checkbox.checked;
-
-            if (statsContainer) {
-                statsContainer.style.display = showStats ? 'flex' : 'none';
-            }
-            saveSettings();
-        }
-
-        // 2. Function to change background type (color/image)
-        function changeBackgroundType(type) {
-            backgroundType = type;
-            const colorSettings = document.getElementById('bg-color-settings');
-            const imageSettings = document.getElementById('bg-image-settings');
-
-            if (type === 'color') {
-                colorSettings.classList.remove('hidden');
-                imageSettings.classList.add('hidden');
-                changeBackground(backgroundColorValue, 'color', false);
-            } else {
-                colorSettings.classList.add('hidden');
-                imageSettings.classList.remove('hidden');
-                changeBackground(backgroundImageValue, 'image', false);
-            }
-            saveSettings();
-        }
-
-        // 3. Function to change background value
-        function changeBackground(value, type, updateInput = true) {
-            const body = document.body;
-
-            if (type === 'color') {
-                backgroundColorValue = value;
-                body.style.backgroundImage = 'none';
-                body.style.background = value;
-
-                if (updateInput) {
-                    document.getElementById('bg-color-input').value = value;
-                }
-
-                console.log(`[SETTINGS] Changed background to color/gradient: ${value}`);
-
-            } else if (type === 'image') {
-                backgroundImageValue = value;
-                if (value.startsWith('http')) {
-                    body.style.background = `url('${value}') center center/cover no-repeat fixed`;
-                } else {
-                    body.style.background = backgroundColorValue;
-                }
-
-                if (updateInput) {
-                    document.getElementById('bg-image-input').value = value;
-                }
-
-                console.log(`[SETTINGS] Background image changed: ${value}`);
-            }
-            saveSettings();
-        }
-
-        // 4. Function to initialize settings from backend
-        async function initializeSettings() {
-            try {
-                const res = await fetch('/get_settings');
-                const settings = await res.json();
-
-                showStats = settings.showStats;
-                backgroundType = settings.backgroundType;
-                backgroundColorValue = settings.backgroundColorValue;
-                backgroundImageValue = settings.backgroundImageValue;
-
-                document.getElementById('toggle-stats').checked = showStats;
-                toggleStats();
-
-                document.getElementById(`bg-${backgroundType}`).checked = true;
-                changeBackgroundType(backgroundType);
-
-                if (backgroundType === "color") {
-                    changeBackground(backgroundColorValue, "color", false);
-                } else {
-                    changeBackground(backgroundImageValue, "image", false);
-                }
-
-                console.log("[INIT] Settings loaded from backend!");
-            } catch (err) {
-                console.error("[INIT] Error while loading settings:", err);
-            }
-        }
-        // 5. Function to save settings to backend
-        function saveSettings() {
-            const data = {
-                showStats,
-                backgroundType,
-                backgroundColorValue,
-                backgroundImageValue
-            };
-            fetch('/save_settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).then(res => res.json())
-                .then(r => console.log('[SETTINGS] Settings saved', r))
-                .catch(e => console.error('[SETTINGS] Error while saving:', e));
-        }
-
-
-        // --- MODULE: STATS (PC Statistics) ---
-        function updateStatGauge(id, label, value) {
-            const textElement = document.getElementById(`${id}_stat_txt`);
-            const rangeElement = document.getElementById(`${id}_stat`);
-
-            if (textElement) {
-                textElement.innerText = `${label}: ${value}%`;
-            }
-            if (rangeElement) {
-                rangeElement.value = value;
-
-                rangeElement.style.setProperty('--progress-width', `${value}%`);
-
-                // Set color based on value
-                let color;
-                if (value >= 80) {
-                    color = '#EF4444'; // Red
-                } else if (value >= 50) {
-                    color = '#F59E0B'; // Amber
-                } else {
-                    color = '#3B82F6'; // Blue
-                }
-                rangeElement.style.setProperty('--progress-color', color);
-            }
-        }
-
-        // Initial fetch and update every second
-        setInterval(async () => {
-            let data = { cpu: 0, ram: 0, disk: 0 };
-
-            try {
-                const res = await fetch('/stats');
-                data = await res.json();
-            } catch (error) {
-                console.error("Błąd pobierania statystyk PC:", error);
-                // In case of error, keep data as zeros
-            }
-
-            // Update each gauge
-            updateStatGauge('cpu', 'CPU', data.cpu);
-            updateStatGauge('ram', 'RAM', data.ram);
-            updateStatGauge('disk', 'Disk', data.disk);
-
-        }, 1000)
-
-
-        // --- MODULE: IDLE SCREEN ---
-        let idleTime = 0;
-        const idleLimit = 60; // seconds before showing idle screen
-        let overlayVisible = false;
-        let idleOverlayElement = null;
-        let clockIntervalId = null;
-
-        // Function to hide the idle screen
-        function hideIdleScreen() {
-            if (idleOverlayElement) {
-                idleOverlayElement.remove();
-                idleOverlayElement = null;
-            }
-            if (clockIntervalId) {
-                clearInterval(clockIntervalId);
-                clockIntervalId = null;
-            }
-            overlayVisible = false;
-        }
-
-        // Function to reset idle timer and hide overlay if visible
-        const resetIdle = () => {
-            // Tylko resetuj timer, jeśli ustawienia nie są otwarte
-            const settingsModal = document.getElementById('settings-modal');
-            const isSettingsOpen = settingsModal && !settingsModal.classList.contains('hidden');
-
-            if (!isSettingsOpen) {
-                idleTime = 0;
-            }
-
-            if (overlayVisible) {
-                hideIdleScreen();
-            }
-        };
-
-        // Function to update the clock every second
-        const updateClock = () => {
-            const now = new Date();
-            const clockElement = document.getElementById('clock');
-            if (clockElement) {
-                clockElement.innerText =
-                    now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            }
-        };
-
-        // Function to show the idle screen with clock
-        function showIdleScreen() {
-
-            if (overlayVisible) return; // If already visible, do nothing
-
-            // Create the overlay element
-            idleOverlayElement = document.createElement('div');
-            idleOverlayElement.id = 'idle-overlay';
-            idleOverlayElement.className = 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-95 text-white text-9xl cursor-pointer z-[9999]';
-            idleOverlayElement.innerHTML = `<div id="clock">--:--:--</div>`;
-            document.body.appendChild(idleOverlayElement);
-
-            overlayVisible = true;
-
-            // Start updating the clock every second
-            updateClock();
-            clockIntervalId = setInterval(updateClock, 1000);
-
-            // Add event listeners to hide the overlay on interaction
-            idleOverlayElement.addEventListener('click', hideIdleScreen);
-            idleOverlayElement.addEventListener('touchstart', hideIdleScreen);
-        }
-
-
-        // Increment idle time every second
-        setInterval(() => {
-            idleTime++;
-            if (idleTime >= idleLimit) {
-                showIdleScreen();
-            }
-        }, 1000);
-
-        // Reset idle timer on user interactions
-        ['mousemove', 'keydown', 'click', 'touchstart'].forEach(event => {
-            document.addEventListener(event, resetIdle);
-        });
-
-
-        // --- MODULE: APP NAVIGATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const appItems = document.querySelectorAll('.app-item');
-            let currentFocusIndex = 0;
-
-            initializeSettings();
-
-            if (appItems.length === 0) return;
-
-            const updateFocus = (newIndex) => {
-                if (appItems[currentFocusIndex]) {
-                    appItems[currentFocusIndex].classList.remove('focused');
-                }
-                currentFocusIndex = newIndex;
-                appItems[currentFocusIndex].classList.add('focused');
-            };
-            updateFocus(0); // Initial focus on the first item
-
-
-            // Handle keyboard navigation 
-            document.addEventListener('keydown', (event) => {
-
-                // Check if settings modal is open
-                const settingsModal = document.getElementById('settings-modal');
-                const isSettingsOpen = settingsModal && !settingsModal.classList.contains('hidden');
-
-                // Zablokuj domyślne przewijanie i inne akcje dla strzałek/Enter/Escape
-                if (['ArrowLeft', 'ArrowRight', 'Enter', 'Escape'].includes(event.key)) {
-                    event.preventDefault();
-                }
-
-                if (document.getElementById('idle-overlay') || isSettingsOpen) {
-
-                    // Disable navigation when idle overlay or settings modal is open
-
-                    if (event.key === 'Enter' && isSettingsOpen) {
-                        closeSettings();
-                    } else if (event.key === 'Escape' && isSettingsOpen) {
-                        closeSettings();
-                    }
-                    return;
-                }
-
-                // -- Navigation Logic --
-                if (event.key === 'ArrowRight') {
-                    const newIndex = (currentFocusIndex + 1) % appItems.length;
-                    updateFocus(newIndex);
-                } else if (event.key === 'ArrowLeft') {
-                    const newIndex = (currentFocusIndex - 1 + appItems.length) % appItems.length;
-                    updateFocus(newIndex);
-                } else if (event.key === 'Enter') {
-                    const focusedElement = appItems[currentFocusIndex];
-                    window.location.href = focusedElement.href;
-                }
-            });
-        });
-
-    </script>
+    <script src="/static/main.js"></script>
 </body>
 
 </html>
