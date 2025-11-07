@@ -33,6 +33,18 @@ def register(app):
         pyautogui.press("down")
         return redirect(url_for("remote"))
 
+    @app.route("/remote/enter_click")
+    def enter_click():
+        # Enter key press
+        pyautogui.press("enter")
+        return redirect(url_for("remote"))
+
+    @app.route("/remote/key/<key>")
+    def press_key(key):
+        # Press any specified key
+        pyautogui.press(key)
+        return redirect(url_for("remote"))
+
     @app.route("/remote/open_home")
     def open_home():
         # This function will close i3 and reload it to show the desktop on Linux and show desktop on Windows

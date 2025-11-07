@@ -8,7 +8,7 @@
 
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <style>
         html {
             color-scheme: dark;
@@ -21,12 +21,61 @@
         .btn-active-feedback {
             @apply transform transition-transform duration-100 active:scale-90 active:bg-blue-600;
         }
+
+        /* Styl dla klawiszy klawiatury */
+        .key-btn {
+            /* Zwiększenie paddingu i rozmiaru czcionki dla większych klawiszy */
+            @apply bg-gray-700 text-gray-100 p-5 rounded-lg shadow-md text-sm font-mono flex items-center justify-center btn-active-feedback;
+            font-size: 2rem !important;
+            /* Ustawienie rozmiaru czcionki na 16px */
+            margin-right: 3px !important;
+            padding: 1px !important;
+            /* Odstęp między klawiszami */
+        }
+
+        .key-btn:last-child {
+            margin-right: 0 !important;
+            /* Usunięcie marginesu dla ostatniego klawisza w rzędzie */
+        }
+
+        .key-btn:hover {
+            background-color: #4B5563;
+            /* Efekt hover dla lepszej widoczności */
+        }
+
+        .key-btn-lg {
+            @apply col-span-2;
+            /* Podwójna szerokość dla klawiszy specjalnych */
+        }
+
+        /* Ustawienie siatki dla poszczególnych rzędów klawiatury */
+        .keyboard-row {
+            @apply grid grid-cols-12 gap-1.5;
+            /* Domyślna siatka 12 kolumn */
+        }
+
+        /* Zmiana: klawisze numeryczne na col-span-1 + DEL na col-span-2 */
+        .keyboard-row:nth-child(1) .key-btn {
+            @apply col-span-1;
+        }
+
+        .keyboard-row:nth-child(1) .col-span-2 {
+            @apply col-span-2;
+            /* Zabezpieczenie dla DEL */
+        }
+
+        /* Usuwamy customizację marginesów, aby klawiatura rozciągała się na całą szerokość bez wcięć */
+        .keyboard-row:not(:first-child) {
+            margin-left: 0;
+            margin-right: 0;
+        }
     </style>
 </head>
 
 <body class="bg-gray-900 text-gray-100 font-sans select-none">
 
-    <div class="min-h-screen w-full max-w-md mx-auto flex flex-col items-center justify-start p-6 space-y-6">
+    <div class="w-full max-w-md mx-auto flex flex-col items-center justify-start p-6 space-y-6"
+        id="remote-main-content">
 
         <!-- SECTION 1: HOME/BACK/POWER -->
         <div class="w-full grid grid-cols-3 gap-4">
@@ -106,6 +155,16 @@
             </div>
         </div>
 
+        <!-- SECTION 2.5: KEYBOARD TOGGLE BUTTON -->
+        <div class="w-full flex justify-center mt-6">
+            <button onclick="toggleKeyboard()"
+                class="bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg btn-active-feedback flex items-center space-x-2">
+                <i class="fa-solid fa-keyboard"></i>
+                <span>Klawiatura</span>
+            </button>
+        </div>
+
+
         <!-- SECTION 3: VOLUME BUTTONS -->
         <div class="w-full flex items-center justify-center gap-5">
             <!-- Quieter -->
@@ -153,12 +212,180 @@
 
     </div>
 
+    <!-- VIRTUAL KEYBOARD SECTION -->
+    <!-- Używamy p-0 na zewnątrz, żeby tło rozciągało się na cały ekran. -->
+    <div id="virtual-keyboard"
+        class="fixed inset-x-0 bottom-0 bg-gray-800 p-0 transform translate-y-full transition-transform duration-300 shadow-2xl">
+
+        <!-- Ten wewnętrzny div kontroluje szerokość i centrowanie, idealnie dopasowując klawisze do reszty pilota. -->
+        <div class="w-full max-w-md mx-auto px-6 py-3 space-y-1">
+            <!-- Row 1: Numbers & Symbols -->
+            <div class="keyboard-row">
+                <!-- 10 klawiszy numerycznych (col-span-1) -->
+                <button onclick="sendKey('1')" class="key-btn">1</button>
+                <button onclick="sendKey('2')" class="key-btn">2</button>
+                <button onclick="sendKey('3')" class="key-btn">3</button>
+                <button onclick="sendKey('4')" class="key-btn">4</button>
+                <button onclick="sendKey('5')" class="key-btn">5</button>
+                <button onclick="sendKey('6')" class="key-btn">6</button>
+                <button onclick="sendKey('7')" class="key-btn">7</button>
+                <button onclick="sendKey('8')" class="key-btn">8</button>
+                <button onclick="sendKey('9')" class="key-btn">9</button>
+                <button onclick="sendKey('0')" class="key-btn">0</button>
+                <!-- 2 klawisze specjalne -->
+                <button onclick="sendKey('delete')" class="key-btn bg-red-600/70 col-span-2">DEL</button>
+            </div>
+
+            <!-- Row 2: QWERTY -->
+            <div class="keyboard-row">
+                <!-- 10 klawiszy (col-span-1) -->
+                <button onclick="sendKey('q')" class="key-btn">Q</button>
+                <button onclick="sendKey('w')" class="key-btn">W</button>
+                <button onclick="sendKey('e')" class="key-btn">E</button>
+                <button onclick="sendKey('r')" class="key-btn">R</button>
+                <button onclick="sendKey('t')" class="key-btn">T</button>
+                <button onclick="sendKey('y')" class="key-btn">Y</button>
+                <button onclick="sendKey('u')" class="key-btn">U</button>
+                <button onclick="sendKey('i')" class="key-btn">I</button>
+                <button onclick="sendKey('o')" class="key-btn">O</button>
+                <button onclick="sendKey('p')" class="key-btn">P</button>
+                <!-- 2 klawisze specjalne -->
+                <button onclick="sendKey('enter')" class="key-btn bg-green-600/70 col-span-2">ENTER</button>
+            </div>
+
+            <!-- Row 3: ASDFGHJKL -->
+            <div class="keyboard-row">
+                <!-- Klawisze 9 liter (col-span-1) -->
+                <button onclick="sendKey('a')" class="key-btn">A</button>
+                <button onclick="sendKey('s')" class="key-btn">S</button>
+                <button onclick="sendKey('d')" class="key-btn">D</button>
+                <button onclick="sendKey('f')" class="key-btn">F</button>
+                <button onclick="sendKey('g')" class="key-btn">G</button>
+                <button onclick="sendKey('h')" class="key-btn">H</button>
+                <button onclick="sendKey('j')" class="key-btn">J</button>
+                <button onclick="sendKey('k')" class="key-btn">K</button>
+                <button onclick="sendKey('l')" class="key-btn">L</button>
+                <!-- Klawisze specjalne (col-span-1) -->
+                <button onclick="sendKey('@')" class="key-btn col-span-1">@</button>
+                <button onclick="sendKey('#')" class="key-btn col-span-1">#</button>
+                <button onclick="sendKey('!')" class="key-btn col-span-1">!</button>
+            </div>
+
+            <!-- Row 4: ZXCVBNM -->
+            <div class="keyboard-row">
+                <!-- Shift (col-span-2) -->
+                <button onclick="toggleShift()" id="shift-btn" class="key-btn bg-gray-600/70 col-span-2"><i
+                        class="fa-solid fa-arrow-up"></i></button>
+
+                <!-- 7 klawiszy -->
+                <button onclick="sendKey('z')" class="key-btn">Z</button>
+                <button onclick="sendKey('x')" class="key-btn">X</button>
+                <button onclick="sendKey('c')" class="key-btn">C</button>
+                <button onclick="sendKey('v')" class="key-btn">V</button>
+                <button onclick="sendKey('b')" class="key-btn">B</button>
+                <button onclick="sendKey('n')" class="key-btn">N</button>
+                <button onclick="sendKey('m')" class="key-btn">M</button>
+
+                <!-- 3 klawisze specjalne (col-span-1) -->
+                <button onclick="sendKey('.')" class="key-btn">.</button>
+                <button onclick="sendKey(',')" class="key-btn">,</button>
+                <button onclick="sendKey('/')" class="key-btn">/</button>
+            </div>
+
+            <!-- Row 5: Space, Alt, Ctrl -->
+            <div class="keyboard-row mt-2">
+                <!-- Zwiększamy szerokości dla lepszej responsywności -->
+                <button onclick="sendKey('ctrl')" class="key-btn bg-gray-600/70 col-span-2">Ctrl</button>
+                <button onclick="sendKey('alt')" class="key-btn bg-gray-600/70 col-span-2">Alt</button>
+                <!-- Space (col-span-4) - zmienione na col-span-4, żeby pasowało do siatki 12 -->
+                <button onclick="sendKey('space')" class="key-btn bg-gray-600/70 col-span-4 text-sm"><i
+                        class="fa-solid fa-ruler-horizontal"></i> SPACE</button>
+                <button onclick="sendKey('esc')" class="key-btn bg-red-600/70 col-span-2">ESC</button>
+                <button onclick="sendKey('tab')" class="key-btn bg-gray-600/70 col-span-2">TAB</button>
+            </div>
+        </div>
+    </div>
+
+
 
     <!-- Flash effect -->
     <div id="feedback-flash" class="hidden fixed inset-0 bg-red-800/30 z-50 pointer-events-none"></div>
 
 
     <script>
+        // Global state for shift
+        let isShiftActive = false;
+
+        // Funkcja do przełączania stanu klawiatury (pokazywanie/ukrywanie)
+        function toggleKeyboard() {
+            const keyboard = document.getElementById('virtual-keyboard');
+            const mainContent = document.getElementById('remote-main-content');
+
+            if (keyboard.classList.contains('translate-y-full')) {
+                // Pokaż klawiaturę
+                keyboard.classList.remove('translate-y-full');
+                // Zwiększamy margines dolny, bo klawiatura jest ciut większa
+                // Dziwna wartość, ale działa
+                mainContent.style.marginBottom = '270px';
+            } else {
+                // Ukryj klawiaturę
+                keyboard.classList.add('translate-y-full');
+                mainContent.style.marginBottom = '0px';
+                // Wyłącz SHIFT przy ukrywaniu
+                if (isShiftActive) {
+                    toggleShift();
+                }
+            }
+        }
+
+        // Funkcja do przełączania SHIFT
+        function toggleShift() {
+            isShiftActive = !isShiftActive;
+            const shiftBtn = document.getElementById('shift-btn');
+
+            // Wizualne potwierdzenie aktywacji SHIFT
+            if (isShiftActive) {
+                shiftBtn.classList.add('bg-blue-500', 'ring-2', 'ring-blue-300');
+            } else {
+                shiftBtn.classList.remove('bg-blue-500', 'ring-2', 'ring-blue-300');
+            }
+
+            // Zmień wyświetlanie klawiszy
+            const letterKeys = document.querySelectorAll('#virtual-keyboard .key-btn');
+            letterKeys.forEach(btn => {
+                // Pobierz wartość z atrybutu onclick
+                const onclickAttr = btn.getAttribute('onclick');
+                const match = onclickAttr.match(/sendKey\('([^']*)'\)/);
+                if (match) {
+                    const key = match[1];
+
+                    // Dotyczy tylko pojedynczych liter
+                    if (key.length === 1 && key.match(/[a-z]/i)) {
+                        btn.textContent = isShiftActive ? key.toUpperCase() : key.toLowerCase();
+                    }
+                }
+            });
+        }
+
+        // Funkcja wysyłająca pojedynczy klawisz
+        function sendKey(key) {
+            let keyToSend = key;
+
+            // Jeśli SHIFT jest aktywny i klawisz to litera, wyślij dużą literę
+            if (isShiftActive && key.length === 1 && key.match(/[a-z]/i)) {
+                keyToSend = key.toUpperCase();
+                // Po wysłaniu dużej litery, wyłącz SHIFT (jak w telefonie)
+                toggleShift();
+            }
+
+            // Ścieżka, którą podałeś
+            const url = '/remote/key/' + keyToSend;
+
+            // Wyślij request
+            sendRequest(url);
+        }
+
+        // Oryginalna funkcja wysyłania requestu
         function sendRequest(url) {
             // 1. Vibration feedback (haptic)
             if (window.navigator.vibrate) {
