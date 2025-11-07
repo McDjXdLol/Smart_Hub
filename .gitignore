@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+venv.bak/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Flask
+instance/
+*.db
+*.sqlite3
+*.sqlite
+flask_session/
+
+# Environment / secret files
+.env
+.flaskenv
+
+# IDEs / editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Compiled extensions / caches
+*.so
+*.pyd
+.mypy_cache/
+.pyre/
+.pytype/
+
+# Logs
+*.log
+logs/
+
+# Project-specific settings
+settings.json
